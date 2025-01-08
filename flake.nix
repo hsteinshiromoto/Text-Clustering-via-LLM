@@ -15,13 +15,10 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             python3
-						poetry
+						uv
           ];
           shellHook = ''
             echo "Python development environment loaded"
-					bash bin/get_quartz.sh
-          poetry install
-          # poetry run python3 _src_/watch_and_move.py
           '';
         };
       });

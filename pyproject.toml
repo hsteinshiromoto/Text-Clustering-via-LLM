@@ -8,3 +8,11 @@ dependencies = [
     "openai>=1.59.5",
     "tqdm>=4.67.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
+
+[tool.uv.pip]
+system = true

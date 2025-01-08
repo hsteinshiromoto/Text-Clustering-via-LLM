@@ -14,11 +14,13 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            python3
 						uv
           ];
           shellHook = ''
             echo "Python development environment loaded"
+						uv python install
+						uv sync
+						source .venv/bin/activate
           '';
         };
       });

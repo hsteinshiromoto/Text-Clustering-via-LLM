@@ -1,18 +1,10 @@
-[tool.poetry]
-name = "clustering-llm"
+[project]
+name = "text-clustering-via-llm"
 version = "0.1.0"
-description = ""
-authors = ["Humberto STEIN SHIROMOTO <h.stein.shiromoto@gmail.com>"]
+description = "Add your description here"
 readme = "README.md"
-packages = [{include = "clustering"}]
-
-[tool.poetry.dependencies]
-python = "^3.12"
-openai = "^1.59.5"
-httpx = "^0.28.1"
-tqdm = "^4.67.1"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.12"
+dependencies = [
+    "openai>=1.59.5",
+    "tqdm>=4.67.1",
+]

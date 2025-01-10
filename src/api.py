@@ -5,8 +5,32 @@ from dotenv import load_dotenv
 import os
 
 
-def main(model: str):
-    # Load environment variables
+def main(model: str) -> Union[ChatOllama, OpenAI, Anthropic]:
+    """Initialize and return an AI model client based on the specified model type.
+
+    This function loads the necessary API keys from environment variables and
+    initializes the requested AI model client. Supports local Llama model,
+    OpenAI's GPT models, and Anthropic's Claude models.
+
+    Args:
+        model (str): The type of model to initialize. Valid options are:
+            - "llama": For local Llama model
+            - "openai" or "gpt": For OpenAI's GPT models
+            - "claude" or "anthropic": For Anthropic's Claude models
+
+    Returns:
+        Union[ChatOllama, OpenAI, Anthropic]: An initialized client for the specified model.
+
+    Raises:
+        ValueError: If an invalid model type is specified or if required API keys
+            are not found in environment variables.
+
+    Examples:
+        >>> client = main("llama")  # Initialize Llama model
+        >>> client = main("openai")  # Initialize OpenAI model (requires OPENAI_API_KEY in .env)
+        >>> client = main("claude")  # Initialize Claude model (requires ANTHROPIC_API_KEY in .env)
+    """
+
     load_dotenv()
 
     if model.lower() == "llama":

@@ -9,6 +9,15 @@ from tqdm import tqdm
 import time
 import re
 from dotenv import load_dotenv
+from pathlib import Path
+import sys
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+sys.path.append(str(PROJECT_ROOT))
+
+from src import api
+
 
 load_dotenv()
 
@@ -19,9 +28,8 @@ def ini_client(api_key: str):
 
 
 def chat(prompt, client):
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
-        response_format={"type": "json_object"},
+    completion = client.chat(
+        model="llama3.2",
         messages=[
             {
                 "role": "system",
@@ -30,9 +38,9 @@ def chat(prompt, client):
             {"role": "user", "content": prompt},
         ],
     )
-    response_origin = completion.choices[0].message.content
+    # response_origin = completion.choices[0].message.content
     # print(f"Original response: {response_origin}")
-    return response_origin
+    return completion
 
 
 def load_dataset(data_path, data, use_large):
@@ -156,7 +164,7 @@ def main(args):
     # 最后输出三个json，分别是原始的聚类label和模型总结完的分类label以及最后进行merge之后，用于后续分类或者计算相似度
     print("use_large: ", args.use_large)
     start_time = time.time()
-    client = ini_client(args.api_key)
+    client = api.main("llama")
     data_list = load_dataset(args.data_path, args.data, args.use_large)
     random.shuffle(data_list)
     label_list = get_label_list(data_list)  # true labels

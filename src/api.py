@@ -1,5 +1,6 @@
 from typing import Union
 from langchain_ollama import ChatOllama
+from ollama import Client
 from openai import OpenAI
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -35,9 +36,8 @@ def main(model: str) -> Union[ChatOllama, OpenAI, Anthropic]:
     load_dotenv()
 
     if model.lower() == "llama":
-        client = ChatOllama(
-            model="llama3.2",
-            temperature=0,
+        client = Client(
+            host="http://localhost:11434",
         )
 
     elif model.lower() in ["openai", "gpt"]:
@@ -57,3 +57,16 @@ def main(model: str) -> Union[ChatOllama, OpenAI, Anthropic]:
         raise ValueError(msg)
 
     return client
+
+
+if __name__ == "__main__":
+    client = main("llama")
+    response = client.chat(
+        model="llama3.2",
+        messages=[
+            {
+                "role": "user",
+                "content": "Why is the sky blue?",
+            },
+        ],
+    )

@@ -615,6 +615,25 @@ wheels = [
 ]
 
 [[package]]
+name = "openai"
+version = "1.59.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "jiter" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2e/7a/07fbe7bdabffd0a5be1bfe5903a02c4fff232e9acbae894014752a8e4def/openai-1.59.6.tar.gz", hash = "sha256:c7670727c2f1e4473f62fea6fa51475c8bc098c9ffb47bfb9eef5be23c747934", size = 344915 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/70/45/6de8e5fd670c804b29c777e4716f1916741c71604d5c7d952eee8432f7d3/openai-1.59.6-py3-none-any.whl", hash = "sha256:b28ed44eee3d5ebe1a3ea045ee1b4b50fea36ecd50741aaa5ce5a5559c900cb6", size = 454817 },
+]
+
+[[package]]
 name = "orjson"
 version = "3.10.14"
 source = { registry = "https://pypi.org/simple" }
@@ -965,6 +984,7 @@ dependencies = [
     { name = "langchain-community" },
     { name = "langchain-ollama" },
     { name = "numpy" },
+    { name = "openai" },
     { name = "python-dotenv" },
     { name = "scikit-learn" },
     { name = "tqdm" },
@@ -982,6 +1002,7 @@ requires-dist = [
     { name = "langchain-community", specifier = ">=0.3.14" },
     { name = "langchain-ollama", specifier = ">=0.2.2" },
     { name = "numpy", specifier = ">=2.2.1" },
+    { name = "openai", specifier = ">=1.59.6" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "scikit-learn", specifier = ">=1.6.0" },
     { name = "tqdm", specifier = ">=4.67.1" },

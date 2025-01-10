@@ -7,19 +7,21 @@ import argparse
 from tqdm import tqdm
 import time
 from dotenv import load_dotenv
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+sys.path.append(str(PROJECT_ROOT))
+
+from src import api
 
 load_dotenv()
 
 
-def ini_client(api_key: str):
-    client = OpenAI(api_key=api_key)
-    return client
-
-
 def chat(prompt, client):
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
-        response_format={"type": "json_object"},
+    completion = client.chat(
+        model="llama3.2",
         messages=[
             {
                 "role": "system",
@@ -28,9 +30,9 @@ def chat(prompt, client):
             {"role": "user", "content": prompt},
         ],
     )
-    response_origin = completion.choices[0].message.content
+    # response_origin = completion.choices[0].message.content
     # print(f"Original response: {response_origin}")
-    return response_origin
+    return completion
 
 
 def load_dataset(data_path, data, use_large):
@@ -157,7 +159,7 @@ def describe_final_output(answer):
 def main(args):  # given label classification
     print(args.use_large)
     start_time = time.time()
-    client = ini_client(args.api_key)
+    client = api.main("llama")
     data_list = load_dataset(args.data_path, args.data, args.use_large)
     label_list = get_predict_labels(args.output_path, args.data)
     print(f"Length of label list: {len(label_list)}")

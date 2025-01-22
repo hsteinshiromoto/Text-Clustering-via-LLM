@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import sys
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 sys.path.append(str(PROJECT_ROOT))
 

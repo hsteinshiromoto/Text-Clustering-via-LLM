@@ -1,18 +1,13 @@
 import random
-from openai import OpenAI
-import httpx
 import os
 import json
 import argparse
-from datetime import datetime
-from tqdm import tqdm
 import time
-import re
 from dotenv import load_dotenv
 from pathlib import Path
 import sys
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 sys.path.append(str(PROJECT_ROOT))
 
@@ -20,11 +15,6 @@ from src import api
 
 
 load_dotenv()
-
-
-def ini_client(api_key: str):
-    client = OpenAI(api_key=api_key)
-    return client
 
 
 def chat(prompt, client):
@@ -188,11 +178,15 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, default="./dataset/")
+    parser.add_argument("--data_path", type=str, default=PROJECT_ROOT / "data" / "raw")
     parser.add_argument("--data", type=str, default="arxiv_fine")
-    parser.add_argument("--output_path", type=str, default="./generated_labels")
     parser.add_argument(
-        "--given_label_path", type=str, default="./generated_labels/chosen_labels.json"
+        "--output_path", type=str, default=PROJECT_ROOT / "data" / "processed"
+    )
+    parser.add_argument(
+        "--given_label_path",
+        type=str,
+        default=PROJECT_ROOT / "data" / "processed" / "chosen_labels.json",
     )
     parser.add_argument("--output_file_name", type=str, default="test.json")
     parser.add_argument(

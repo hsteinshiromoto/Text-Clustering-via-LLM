@@ -1,7 +1,12 @@
 import json
 import random
 import os
-import math
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+sys.path.append(str(PROJECT_ROOT))
 
 
 def find_sorted_folders(directory):
@@ -33,13 +38,15 @@ def get_label_list(data_list):
     return label_list
 
 
-def main():  # seltect 20% of labels to be given to the LLMs
-    data_path = "dataset/"
-    # print(find_sorted_folders(data_path))
+def main(
+    input_folder: Path = PROJECT_ROOT / "data" / "raw",
+    output_folder: Path = PROJECT_ROOT / "data" / "processed",
+):  # seltect 20% of labels to be given to the LLMs
+    # print(find_sorted_folders(input_folder))
     total_chosen_labels = dict()
-    for data in find_sorted_folders(data_path):
+    for data in find_sorted_folders(str(input_folder)):
         # total_chosen_labels[data] = []
-        data_list = load_dataset(data_path, data)
+        data_list = load_dataset(str(input_folder), data)
         data_labels = get_label_list(data_list)
         print(len(data_labels))
         # choose_num = len(data_labels) // 5
@@ -47,9 +54,9 @@ def main():  # seltect 20% of labels to be given to the LLMs
         print(f"Choose num: {choose_num}")
         total_chosen_labels[data] = random.choices(data_labels, k=choose_num)
     # print(total_chosen_labels)
-    with open("generated_labels/chosen_labels.json", "w") as f:
+    with open(str(output_folder / "chosen_labels.json"), "w") as f:
         json.dump(total_chosen_labels, f, indent=2)
-    print(f"Write chosen labels to generated_labels/chosen_labels.json")
+    print(f"Write chosen labels to { output_folder } / chosen_labels.json")
 
 
 if __name__ == "__main__":

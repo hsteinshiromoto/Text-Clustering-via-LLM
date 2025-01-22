@@ -127,6 +127,8 @@ if __name__ == "__main__":
         type=str,
         default=str(PROJECT_ROOT / "data" / "processed"),
     )
-    parser.add_argument("--predict_file", type=str, default="")
+    parser.add_argument(
+        "--predict_file", type=str, default="arxiv_fine_small_find_labels.json"
+    )
     args = parser.parse_args()
     main(args)

@@ -1,13 +1,8 @@
 import random
-from openai import OpenAI
-import httpx
 import os
 import json
 import argparse
-from datetime import datetime
-from tqdm import tqdm
 import time
-import re
 from dotenv import load_dotenv
 from pathlib import Path
 import sys
@@ -20,11 +15,6 @@ from src import api
 
 
 load_dotenv()
-
-
-def ini_client(api_key: str):
-    client = OpenAI(api_key=api_key)
-    return client
 
 
 def chat(prompt, client):

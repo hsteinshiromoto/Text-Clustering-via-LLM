@@ -173,9 +173,11 @@ def main(args):  # given label classification
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, default="./dataset/")
+    parser.add_argument("--data_path", type=str, default=PROJECT_ROOT / "data" / "raw")
     parser.add_argument("--data", type=str, default="arxiv_fine")
-    parser.add_argument("--output_path", type=str, default="./generated_labels")
+    parser.add_argument(
+        "--output_path", type=str, default=PROJECT_ROOT / "data" / "processed"
+    )
     parser.add_argument("--output_file_name", type=str, default="find_labels.json")
     parser.add_argument(
         "--use_large",

@@ -178,11 +178,15 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, default="./dataset/")
+    parser.add_argument("--data_path", type=str, default=PROJECT_ROOT / "data" / "raw")
     parser.add_argument("--data", type=str, default="arxiv_fine")
-    parser.add_argument("--output_path", type=str, default="./generated_labels")
     parser.add_argument(
-        "--given_label_path", type=str, default="./generated_labels/chosen_labels.json"
+        "--output_path", type=str, default=PROJECT_ROOT / "data" / "processed"
+    )
+    parser.add_argument(
+        "--given_label_path",
+        type=str,
+        default=PROJECT_ROOT / "data" / "processed" / "chosen_labels.json",
     )
     parser.add_argument("--output_file_name", type=str, default="test.json")
     parser.add_argument(

@@ -1,10 +1,6 @@
-import random
-from openai import OpenAI
-import httpx
 import os
 import json
 import argparse
-from tqdm import tqdm
 import time
 from dotenv import load_dotenv
 import sys

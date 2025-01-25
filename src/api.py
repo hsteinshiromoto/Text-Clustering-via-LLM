@@ -62,7 +62,7 @@ def main(model: str) -> Union[ChatOllama, OpenAI, Anthropic]:
 if __name__ == "__main__":
     client = main("llama")
     response = client.chat(
-        model="llama3.2",
+        model="mistral",
         messages=[
             {
                 "role": "user",

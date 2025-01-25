@@ -1,10 +1,24 @@
-import random
-from openai import OpenAI
-import httpx
+"""
+Label Classification Module
+
+This module implements a text classification system using AI models to categorize text
+into predefined labels. It supports both large and small datasets and uses a language
+model to perform the classification tasks.
+
+Key features:
+- Automated text classification using AI models
+- Support for custom label sets
+- Batch processing capabilities
+- Detailed output logging and error handling
+- Configurable testing modes
+
+The system loads pre-generated labels and classifies new text inputs according to
+these existing categories.
+"""
+
 import os
 import json
 import argparse
-from tqdm import tqdm
 import time
 from dotenv import load_dotenv
 import sys
@@ -19,9 +33,23 @@ from src import api
 load_dotenv()
 
 
-def chat(prompt, client):
+def chat(prompt: str, client) -> str:
+    """
+    Send a chat request to the Mistral AI model and get classification response.
+
+    Args:
+        prompt (str): The formatted input prompt containing text and instructions
+        client: The initialized Mistral model client
+
+    Returns:
+        str: The model's response containing the classification result
+
+    Note:
+        Uses system prompt to ensure JSON output format
+        Configured specifically for the Mistral model
+    """
     completion = client.chat(
-        model="llama3.2",
+        model="mistral",
         messages=[
             {
                 "role": "system",
@@ -36,8 +64,21 @@ def chat(prompt, client):
 
 
 def load_dataset(data_path, data, use_large):
-    # data_file_list = os.listdir(data_path) # ['large.jsonl', 'small.jsonl']
-    # print(data_file_list)
+    """
+    Load and parse the dataset from JSONL files.
+
+    Args:
+        data_path (str): Base path to the data directory
+        data (str): Dataset subdirectory name (e.g., 'arxiv_fine')
+        use_large (bool): If True, loads large.jsonl, otherwise small.jsonl
+
+    Returns:
+        list: List of dictionaries containing parsed JSON objects
+
+    Note:
+        Prints dataset path and size for verification
+        Expects JSONL format with one JSON object per line
+    """
     data_file = (
         os.path.join(data_path, data, "large.jsonl")
         if use_large
@@ -62,6 +103,21 @@ def get_label_list(data_list):
 
 
 def get_predict_labels(output_path, data):
+    """
+    Load previously generated and merged labels from output files.
+
+    Args:
+        output_path (str): Path to the processed data directory
+        data (str): Dataset identifier (e.g., 'arxiv_fine')
+
+    Returns:
+        list: Deduplicated list of predicted labels
+
+    Note:
+        Expects a specific file naming pattern:
+        {data}_small_llm_generated_labels_after_merge.json
+    """
+
     data_file = os.path.join(
         output_path, data + "_small_llm_generated_labels_after_merge.json"
     )
@@ -73,6 +129,22 @@ def get_predict_labels(output_path, data):
 
 
 def prompt_construct(label_list, sentence):
+    """
+    Construct a classification prompt for the AI model.
+
+    Creates a structured prompt that includes:
+    1. Task instruction
+    2. Available labels
+    3. Input sentence
+    4. Expected JSON response format
+
+    Args:
+        label_list (list): Available labels for classification
+        sentence (str): Text to be classified
+
+    Returns:
+        str: Formatted prompt string with complete instructions
+    """
     prompt = f"Given the label list and the sentence, please categorize the sentence into one of the labels.\n"
     prompt += f"Label list: {label_list}.\n"
     prompt += f"Sentence:{sentence}.\n"
@@ -82,6 +154,21 @@ def prompt_construct(label_list, sentence):
 
 
 def answer_process(response, label_list):
+    """
+    Process and validate the model's response.
+
+    Handles multiple response formats and extracts valid labels:
+    1. Attempts to parse response as Python dictionary
+    2. Falls back to string processing if parsing fails
+    3. Validates extracted label against provided label list
+
+    Args:
+        response (str): Raw response from the AI model
+        label_list (list): List of valid labels
+
+    Returns:
+        str: Valid label if found, "Unsuccessful" otherwise
+    """
     label = "Unsuccessful"
     try:
         response_new = eval(response)
@@ -104,6 +191,29 @@ def answer_process(response, label_list):
 
 
 def known_label_categorize(args, client, data_list, label_list):
+    """
+    Perform batch classification of texts using the AI model.
+
+    Main classification pipeline that:
+    1. Processes each input text
+    2. Generates classification prompts
+    3. Gets and validates model responses
+    4. Organizes results by label
+    5. Handles errors and unsuccessful classifications
+
+    Args:
+        args: Command line arguments with configuration
+        client: Initialized AI model client
+        data_list (list): Input texts to classify
+        label_list (list): Available classification labels
+
+    Returns:
+        dict: Mapping of labels to lists of classified texts
+
+    Note:
+        Includes progress tracking and periodic result saving
+        Supports detailed output printing for debugging
+    """
     answer = dict()
     length = args.test_num if args.print_details else len(data_list)
     answer["Unsuccessful"] = []
@@ -137,6 +247,20 @@ def known_label_categorize(args, client, data_list, label_list):
 
 
 def write_answer_to_json(args, answer, output_path, output_name):
+    """
+    Save classification results to a JSON file.
+
+    Args:
+        args: Command line arguments containing dataset info
+        answer (dict): Classification results mapping labels to texts
+        output_path (str): Directory for output file
+        output_name (str): Base name for output file
+
+    Note:
+        Creates filename using pattern: {data}_{size}_{output_name}
+        Uses indented JSON format for readability
+        Prints confirmation message after writing
+    """
     size = "large" if args.use_large else "small"
     file_name = os.path.join(output_path, "_".join([args.data, size, output_name]))
     with open(file_name, "w") as json_file:
@@ -152,11 +276,38 @@ def load_predict_data(data_path, file_name):
 
 
 def describe_final_output(answer):
+    """
+    Print summary statistics of classification results.
+
+    Args:
+        answer (dict): Classification results mapping labels to texts
+
+    Note:
+        Prints count of texts assigned to each label
+        Helps verify distribution of classifications
+    """
     for key in answer.keys():
         print(f"{key}: {len(answer[key])}")
 
 
 def main(args):  # given label classification
+    """
+    Main execution function for the classification pipeline.
+
+    Orchestrates the complete classification process:
+    1. Initializes AI model client
+    2. Loads dataset and predicted labels
+    3. Performs classification on all texts
+    4. Removes empty categories
+    5. Saves and summarizes results
+
+    Args:
+        args: Command line arguments with all configuration parameters
+
+    Note:
+        Tracks and reports total execution time
+        Prints classification distribution summary
+    """
     print(args.use_large)
     start_time = time.time()
     client = api.main("llama")
@@ -172,7 +323,15 @@ def main(args):  # given label classification
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="""
+        Text Classification Tool
+
+        Classifies text inputs into predefined categories using the Mistral AI model.
+        Supports both large and small datasets, with configurable output detail levels
+        and test modes for development purposes.
+        """
+    )
     parser.add_argument("--data_path", type=str, default=PROJECT_ROOT / "data" / "raw")
     parser.add_argument("--data", type=str, default="arxiv_fine")
     parser.add_argument(

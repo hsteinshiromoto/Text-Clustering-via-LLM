@@ -1,3 +1,18 @@
+"""
+Label Generation Module
+
+This module implements an AI-powered label generation and refinement system.
+It uses language models to generate, analyze, and merge labels for text classification tasks.
+The system works by taking a set of initial labels and texts, then generating new appropriate
+labels while maintaining semantic consistency.
+
+Main components:
+- Label generation from text chunks
+- Label merging to reduce redundancy
+- Support for different dataset sizes
+- Integration with various AI models (Llama, OpenAI, Claude)
+"""
+
 import random
 import os
 import json
@@ -18,8 +33,21 @@ load_dotenv()
 
 
 def chat(prompt, client):
+    """
+    Send a chat request to the AI model and get the response.
+
+    Args:
+        prompt (str): The input prompt to send to the model
+        client: The initialized AI model client
+
+    Returns:
+        str: The model's response, expected to be in JSON format
+
+    Note:
+        The system prompt instructs the model to return responses in JSON format.
+    """
     completion = client.chat(
-        model="llama3.2",
+        model="mistral",
         messages=[
             {
                 "role": "system",
@@ -34,8 +62,20 @@ def chat(prompt, client):
 
 
 def load_dataset(data_path, data, use_large):
-    # data_file_list = os.listdir(data_path) # ['large.jsonl', 'small.jsonl']
-    # print(data_file_list)
+    """
+    Load and parse the dataset from a JSONL file.
+
+    Args:
+        data_path (str): Path to the data directory
+        data (str): Dataset name/subdirectory
+        use_large (bool): If True, loads the large dataset, otherwise loads the small dataset
+
+    Returns:
+        list: List of dictionaries containing the parsed JSON objects
+
+    Note:
+        Expects either 'large.jsonl' or 'small.jsonl' in the specified directory.
+    """
     data_file = (
         os.path.join(data_path, data, "large.jsonl")
         if use_large
@@ -52,6 +92,15 @@ def load_dataset(data_path, data, use_large):
 
 
 def get_label_list(data_list):
+    """
+    Extract unique labels from the dataset.
+
+    Args:
+        data_list (list): List of data points containing 'label' field
+
+    Returns:
+        list: List of unique labels found in the dataset
+    """
     label_list = []
     for data in data_list:
         if data["label"] not in label_list:
@@ -60,6 +109,20 @@ def get_label_list(data_list):
 
 
 def prompt_construct_generate_label(sentence_list, given_labels):
+    """
+    Construct a prompt for label generation task.
+
+    Creates a structured prompt asking the AI model to either match texts with existing labels
+    or generate new meaningful labels when necessary.
+
+    Args:
+        sentence_list (list): List of sentences to be labeled
+        given_labels (list): List of existing labels to consider
+
+    Returns:
+        str: Formatted prompt string for the AI model
+    """
+
     json_example = {"labels": ["label name", "label name"]}
     prompt = f"Given the labels, under a text classicifation scenario, can all these text match the label given? If the sentence does not match any of the label, please generate a meaningful new label name.\n \
             Labels: {given_labels}\n \
@@ -69,6 +132,19 @@ def prompt_construct_generate_label(sentence_list, given_labels):
 
 
 def prompt_construct_merge_label(label_list):
+    """
+    Construct a prompt for label merging task.
+
+    Creates a prompt asking the AI model to identify and merge similar or duplicate labels
+    while maintaining semantic meaning.
+
+    Args:
+        label_list (list): List of labels to be merged
+
+    Returns:
+        str: Formatted prompt string for the AI model
+    """
+
     json_example = {"merged_labels": ["label name", "label name"]}
     prompt = f"Please analyze the provided list of labels to identify entries that are similar or duplicate, considering synonyms, variations in phrasing, and closely related terms that essentially refer to the same concept. Your task is to merge these similar entries into a single representative label for each unique concept identified. The goal is to simplify the list by reducing redundancies without organizing it into subcategories or altering its fundamental structure. \n"
     prompt += (
@@ -86,6 +162,25 @@ def get_sentences(sentence_list):
 
 
 def label_generation(args, client, data_list, chunk_size):
+    """
+    Generate labels for chunks of text using AI model.
+
+    This function:
+    1. Processes the dataset in chunks
+    2. Generates new labels for texts that don't match existing labels
+    3. Maintains a list of unique labels
+    4. Filters out generic/placeholder labels
+
+    Args:
+        args: Command line arguments
+        client: Initialized AI model client
+        data_list (list): List of data points to generate labels for
+        chunk_size (int): Number of sentences to process in each batch
+
+    Returns:
+        list: Combined list of original and newly generated labels
+    """
+
     count = 0
     all_labels = []
     with open(args.given_label_path, "r") as f:  # load the given data
@@ -126,6 +221,21 @@ def label_generation(args, client, data_list, chunk_size):
 
 
 def merge_labels(args, all_labels, client):
+    """
+    Merge similar labels using AI model.
+
+    Uses the AI model to identify and combine semantically similar labels,
+    reducing redundancy while maintaining meaning.
+
+    Args:
+        args: Command line arguments
+        all_labels (list): List of labels to be merged
+        client: Initialized AI model client
+
+    Returns:
+        list: List of merged labels, or original labels if merging fails
+    """
+
     prompt = prompt_construct_merge_label(all_labels)
     response = chat(prompt, client)
     try:
@@ -150,8 +260,25 @@ def write_dict_to_json(args, input, output_path, output_name):
 
 
 def main(args):
-    # 在分类时给定部分label（1/5），让模型根据已有的label生成新的label
-    # 最后输出三个json，分别是原始的聚类label和模型总结完的分类label以及最后进行merge之后，用于后续分类或者计算相似度
+    """
+    Main execution function for the label generation pipeline.
+
+    This function orchestrates the entire label generation process:
+    1. Loads and preprocesses the dataset
+    2. Extracts existing labels
+    3. Generates new labels using AI model
+    4. Merges similar labels
+    5. Saves results in multiple JSON files:
+       - Original cluster labels
+       - AI-generated labels before merging
+       - Final merged labels
+
+    The process aims to maintain a balance between coverage and conciseness
+    in the label set while ensuring semantic relevance.
+
+    Args:
+        args: Command line arguments containing configuration parameters
+    """
     print("use_large: ", args.use_large)
     start_time = time.time()
     client = api.main("llama")
@@ -177,7 +304,15 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="""
+        Label Generation Tool
+
+        This script processes text datasets and generates appropriate labels using AI models.
+        It can handle both small and large datasets, and includes features for label
+        generation and optimization through merging similar labels.
+        """
+    )
     parser.add_argument("--data_path", type=str, default=PROJECT_ROOT / "data" / "raw")
     parser.add_argument("--data", type=str, default="arxiv_fine")
     parser.add_argument(

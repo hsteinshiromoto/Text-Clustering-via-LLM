@@ -47,7 +47,7 @@ def chat(prompt, client):
         The system prompt instructs the model to return responses in JSON format.
     """
     completion = client.chat(
-        model="llama3.2",
+        model="mistral",
         messages=[
             {
                 "role": "system",

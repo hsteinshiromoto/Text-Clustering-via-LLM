@@ -21,7 +21,7 @@ load_dotenv()
 
 def chat(prompt, client):
     completion = client.chat(
-        model="llama3.2",
+        model="mistral",
         messages=[
             {
                 "role": "system",
